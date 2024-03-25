@@ -19,7 +19,7 @@ from Kernel import GaussKernel, LinearKernel, PolyKernel, Kernel
 # def othKernel(x1, x2, sigma):
 #     return np.exp(-np.dot(x1 - x2, x1 - x2) / (2 * sigma*sigma))
 
-def classify(dataset: ndarray, train_size: int, kernel: Kernel, C: float, size: int, dir: str):
+def classify(dataset: ndarray, train_size: int, kernel: Kernel, C: float, size: int, dir: str, do_test: bool = False):
     data = deepcopy(dataset)
     sample1 = []
     sample2 = []
@@ -80,29 +80,30 @@ def classify(dataset: ndarray, train_size: int, kernel: Kernel, C: float, size: 
     sampleE = np.array([data[i] for i in classifier.E])
     colorE = [color[i] for i in classifier.E]
 
-    testO = []
-    testE = []
-    colorTestO = []
-    colorTestE = []
-    for j, point in enumerate(test):
-        i = train_size + j
-        val = 0
-        col = None
-        if color[i] == 'red':
-            col = 'm'
-            val = 1
-        if color[i] == 'green':
-            col = 'c'
-            val = -1
-        if classifier(point[:2]) * val < 0:
-            testE.append(point[:2])
-            colorTestE.append(col)
-        else:
-            testO.append(point[:2])
-            colorTestO.append(col)
+    if do_test:
+        testO = []
+        testE = []
+        colorTestO = []
+        colorTestE = []
+        for j, point in enumerate(test):
+            i = train_size + j
+            val = 0
+            col = None
+            if color[i] == 'red':
+                col = 'm'
+                val = 1
+            if color[i] == 'green':
+                col = 'c'
+                val = -1
+            if classifier(point[:2]) * val < 0:
+                testE.append(point[:2])
+                colorTestE.append(col)
+            else:
+                testO.append(point[:2])
+                colorTestO.append(col)
 
-    testO = np.array(testO)
-    testE = np.array(testE)
+        testO = np.array(testO)
+        testE = np.array(testE)
 
     plt.title(f'{kernel}, $C = {C}$')
     if len(sampleS) != 0:
@@ -111,10 +112,11 @@ def classify(dataset: ndarray, train_size: int, kernel: Kernel, C: float, size: 
         plt.scatter(sampleO[:,0], sampleO[:,1], c=colorO, marker=".", s=24)
     if len(sampleE) != 0:
         plt.scatter(sampleE[:,0], sampleE[:,1], c=colorE, marker="+", s=64)
-    if len(testO) != 0:
-        plt.scatter(testO[:,0], testO[:,1], c=colorTestO, marker=".", s=24)
-    if len(testE) != 0:
-        plt.scatter(testE[:,0], testE[:,1], c=colorTestE, marker="+", s=64)
+    if do_test:
+        if len(testO) != 0:
+            plt.scatter(testO[:,0], testO[:,1], c=colorTestO, marker=".", s=24)
+        if len(testE) != 0:
+            plt.scatter(testE[:,0], testE[:,1], c=colorTestE, marker="+", s=64)
 
     dirname = os.path.join(dir, kernel.filename)
     if not os.path.isdir(dirname):
@@ -182,7 +184,7 @@ def nonlinear_researh():
 
     train_size = 300
     timeout = 180
-    dirname = f'figures_tr{train_size}_to{timeout}'
+    dirname = f'figures_tr{train_size}_to{timeout}_wo_test'
     if not os.path.isdir(dirname):
         os.makedirs(dirname)
     fig_filename = os.path.join(dirname, f'data.png')
@@ -202,7 +204,7 @@ def nonlinear_researh():
     # grid search
     for kernel in tqdm(kernels):
         for C in C_list:
-            p = multiprocessing.Process(target=classify, args=(dataset, train_size, kernel, C, size, dirname))
+            p = multiprocessing.Process(target=classify, args=(dataset, train_size, kernel, C, size, dirname, False))
             p.start()
             p.join(timeout=timeout)
             if p.is_alive():

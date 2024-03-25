@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from scipy.stats import multivariate_normal
 from matplotlib import pyplot as plt
@@ -67,7 +68,7 @@ def nonlinear_researh():
                 sample.append(point)
                 color.append("green")
 
-        for i, point in enumerate(data[:100]):
+        for i, point in enumerate(data[:300]):
             if color[i] == "red":
                 classifier.addDataPair(point, 1)
             else:
@@ -95,34 +96,34 @@ def nonlinear_researh():
         sampleE = np.array([data[i] for i in classifier.E])
         colorE = [color[i] for i in classifier.E]
 
-        testO = []
-        testE = []
-        colorTestO = []
-        colorTestE = []
-        for j, point in enumerate(data[100:]):
-            i = 100 + j
-            val = 0
-            col = None
-            if color[i] == 'red':
-                col = 'm'
-                val = 1
-            if color[i] == 'green':
-                col = 'c'
-                val = -1
-            if classifier(point) * val < 0:
-                testE.append(point)
-                colorTestE.append(col)
-            else:
-                testO.append(point)
-                colorTestO.append(col)
+        # testO = []
+        # testE = []
+        # colorTestO = []
+        # colorTestE = []
+        # for j, point in enumerate(data[300:]):
+        #     i = 300 + j
+        #     val = 0
+        #     col = None
+        #     if color[i] == 'red':
+        #         col = 'm'
+        #         val = 1
+        #     if color[i] == 'green':
+        #         col = 'c'
+        #         val = -1
+        #     if classifier(point) * val < 0:
+        #         testE.append(point)
+        #         colorTestE.append(col)
+        #     else:
+        #         testO.append(point)
+        #         colorTestO.append(col)
             
         print('=========== ЛИНЕЙНО НЕРАЗДЕЛИМЫЕ ДАННЫЕ ===========')
         print('|S| = ', len(classifier.S))
         print('|E| = ', len(classifier.E))
         print('|R| = ', len(classifier.O))
 
-        testO = np.array(testO)
-        testE = np.array(testE)
+        # testO = np.array(testO)
+        # testE = np.array(testE)
 
         plt.title(f'Гауссово ядро, $C = {C}$')
         if len(sampleS) != 0:
@@ -131,10 +132,10 @@ def nonlinear_researh():
             plt.scatter(sampleO[:,0], sampleO[:,1], c=colorO, marker=".", s=24)
         if len(sampleE) != 0:
             plt.scatter(sampleE[:,0], sampleE[:,1], c=colorE, marker="+", s=64)
-        if len(testO) != 0:
-            plt.scatter(testO[:,0], testO[:,1], c=colorTestO, marker=".", s=24)
-        if len(testE) != 0:
-            plt.scatter(testE[:,0], testE[:,1], c=colorTestE, marker="+", s=64)
+        # if len(testO) != 0:
+        #     plt.scatter(testO[:,0], testO[:,1], c=colorTestO, marker=".", s=24)
+        # if len(testE) != 0:
+        #     plt.scatter(testE[:,0], testE[:,1], c=colorTestE, marker="+", s=64)
 
 
 
@@ -149,4 +150,18 @@ def nonlinear_researh():
                 miss += 1
         print('miss count = ', miss)
         print(miss / size)
-        plt.show()
+        # plt.show()
+
+        dirname = 'circ_gauss_4'
+        # dirname = os.path.join(dir, kernel.filename)
+        if not os.path.isdir(dirname):
+            os.makedirs(dirname)
+        fig_filename = os.path.join(dirname, f'C_{C}.png')
+        txt_filename = os.path.join(dirname, f'C_{C}.txt')
+        plt.savefig(fig_filename)
+        with open(txt_filename, 'w') as f:
+            f.write(f'|S| = {len(classifier.S)}\n')
+            f.write(f'|E| = {len(classifier.E)}\n')
+            f.write(f'|R| = {len(classifier.O)}\n')
+            f.write(f'miss count = {miss}\n')
+            f.write(f'error (%) = {miss / size}\n')
